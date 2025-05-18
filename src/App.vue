@@ -74,38 +74,43 @@ const getFileAbsolutePath = async (directoryHandle: FileSystemDirectoryHandle): 
 </script>
 
 <template>
-  <header>
-    <nav class="top-menu-bar">
-      <ul>
-        <li><RouterLink to="/">Home</RouterLink></li>
-        <li><button @click="onFileMenuClick">File</button></li>
-        <li>{{targetDirAbsPath}}</li>
-      </ul>
-    </nav>
-  </header>
+  <v-app>
+    <v-main>
+      <v-container>
+        <v-app-bar :elevation="2">
+          <template v-slot:prepend>
+            <!-- <v-app-bar-nav-icon></v-app-bar-nav-icon> -->
+            <v-btn icon="mdi-directory" @click="onFileMenuClick">
+              <v-icon>mdi-folder</v-icon>
+            </v-btn>
+          </template>
+          <v-app-bar-title>{{ targetDirAbsPath ?? "(ディレクトリ未選択)" }}</v-app-bar-title>
+        </v-app-bar>
 
-  <div class="main-content">
-    <Splitpanes class="default-theme">
-      <Pane min-size="20">
-        <ImageAndDirectoryList :directory="targetDirHandle" @file-selected="fileSelected" />
-      </Pane>
-      <Pane>
-        <img :src="targetImageFileUrl" style="object-fit: scale-down; width: 100%;"/>
-      </Pane>
-      <Pane>
-        <form>
-          <textarea 
-            rows="10" 
-            cols="30" 
-            placeholder="Enter tag text here..." 
-            style="width: 100%; height: 100%;" 
-            v-model="targetTagText">
-          </textarea>
-        </form>
-      </Pane>
-    </Splitpanes>
-  </div>
-
+        <div class="main-content">
+          <Splitpanes class="default-theme">
+            <Pane min-size="20">
+              <ImageAndDirectoryList :directory="targetDirHandle" @file-selected="fileSelected" />
+            </Pane>
+            <Pane>
+              <img :src="targetImageFileUrl" style="object-fit: scale-down; width: 100%;"/>
+            </Pane>
+            <Pane>
+              <form>
+                <textarea 
+                  rows="10" 
+                  cols="30" 
+                  placeholder="Enter tag text here..." 
+                  style="width: 100%; height: 100%;" 
+                  v-model="targetTagText">
+                </textarea>
+              </form>
+            </Pane>
+          </Splitpanes>
+        </div>
+      </v-container>
+    </v-main>
+  </v-app>
 </template>
 
 <style lang="scss" scoped>

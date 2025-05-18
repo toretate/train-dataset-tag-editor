@@ -11,12 +11,15 @@
     "type-check": "vue-tsc --build"
   },
   "dependencies": {
-    "@vueuse/core": "^13.1.0",
+    "@mdi/font": "^7.4.47",
+    "@vueuse/core": "^13.2.0",
+    "material-design-icons-iconfont": "^6.7.0",
     "pinia": "^3.0.1",
     "splitpanes": "^4.0.3",
     "vue": "^3.5.13",
     "vue-router": "^4.5.0",
-    "vue3-lazyload": "^0.3.8"
+    "vue3-lazyload": "^0.3.8",
+    "vuetify": "^3.8.0-beta.0"
   },
   "devDependencies": {
     "@tsconfig/node22": "^22.0.1",
