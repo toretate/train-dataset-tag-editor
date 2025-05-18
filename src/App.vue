@@ -71,6 +71,38 @@ const getFileAbsolutePath = async (directoryHandle: FileSystemDirectoryHandle): 
 
   return '/' + paths.join('/');
 };
+
+// SplitPanes のサイズ変更のPersistence処理
+const paneSizeData = JSON.parse( localStorage.panes ?? "[30, 40, 30]" ) as number[]
+console.log( paneSizeData )
+const paneSize1 = ref( paneSizeData[0] )
+const paneSize3 = ref( paneSizeData[2] )
+const savePaneSizes = ( panes: number[] ) => {
+  console.log( panes )
+  localStorage.setItem( 'panes', JSON.stringify( panes ) )
+}
+const onSplitterResized = ( { panes }: { panes: Pane[] } ) => {
+  console.log( "Resized", panes.map( p => p.size ) )
+  const paneSizeList = panes.map( p => p.size )
+  savePaneSizes( paneSizeList )
+}
+const onSplitterDblClicked = ( { index, panes }: { index: number, panes: Pane[], prevPane: Pane, nextPane: Pane } ) => {
+  console.log( "DblClicked", index, panes.map( p => p.size ) )
+  // 初期サイズに戻す
+  switch( index ) {
+    case 1:
+      paneSizeData[0] = 30
+      paneSize1.value = paneSizeData[0]
+      break
+    case 2:
+      paneSizeData[2] = 30
+      paneSize3.value = paneSizeData[2]
+      break
+    default:
+      break
+  }
+  savePaneSizes( paneSizeData )
+}
 </script>
 
 <template>
@@ -88,14 +120,19 @@ const getFileAbsolutePath = async (directoryHandle: FileSystemDirectoryHandle): 
         </v-app-bar>
 
         <div class="main-content">
-          <Splitpanes class="default-theme">
-            <Pane min-size="20">
+          <Splitpanes
+            class="default-theme"
+            @resized="onSplitterResized"
+            @splitter-dblclick="onSplitterDblClicked"
+            :maximize-panes="false"
+            >
+            <Pane min-size="10" :size="paneSize1">
               <ImageAndDirectoryList :directory="targetDirHandle" @file-selected="fileSelected" />
             </Pane>
-            <Pane>
+            <Pane :size="100 - paneSize1 - paneSize3">
               <img :src="targetImageFileUrl" style="object-fit: scale-down; width: 100%;"/>
             </Pane>
-            <Pane>
+            <Pane min-size="10" :size="paneSize3">
               <form>
                 <textarea 
                   rows="10" 
