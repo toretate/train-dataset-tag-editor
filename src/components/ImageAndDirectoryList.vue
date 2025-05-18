@@ -1,23 +1,34 @@
 <template>
-    <div>
-        <h2>{{ directory?.name || 'No Directory Selected' }}</h2>
-        <ul>
+    <div class="filelist-wrapper">
+        <div>
+            <v-toolbar density="compact" :title="directory?.name || 'No Directory Selected'">
+                <template v-slot:append>
+                    <v-btn-toggle density="compact" divided v-model="thumbnailSize" mandatory>
+                        <v-btn size="x-small" value="x-small"><v-icon size="x-small">mdi-image</v-icon></v-btn>
+                        <v-btn size="x-small" value="medium"><v-icon size="medium">mdi-image</v-icon></v-btn>
+                        <v-btn size="x-small" value="x-large"><v-icon size="x-large">mdi-image</v-icon></v-btn>
+                    </v-btn-toggle>
+                </template>
+            </v-toolbar>
+        </div>
+        <ul class="file-list">
             <template v-for="(item, index) in directoryContents" :key="index">
                 <li v-if="item.type === 'file' && item.file && item.name.match(/\.(png|jpe?g|gif|bmp|webp)$/i)"
                     class="file-item"
                     v-on:click="handleItemClick(item)"
                     >
-                    <img
-                        v-lazy="getImageUrl(item.file)"
-                        :key="item.file.name"
-                        loading="lazy"
-                        alt="Image"
-                        class="thumbnail"
-                    />
-                    <span> {{ getFileNameWithoutExtension(item) }}</span>
+                    <v-lazy transition="fade-transition" :key="item.file.name">
+                        <div class="file-item-content">
+                            <v-img
+                                :src="getImageUrl(item.file)"
+                                :class="'thumbnail' + ' ' + thumbnailSize"
+                            />
+                            <span> {{ getFileNameWithoutExtension(item.file!) }}</span>
+                        </div>
+                    </v-lazy>
                 </li>
                 <li v-else-if="item.type === 'directory'">
-                    <span>📁 {{ getFileNameWithoutExtension( item ) }}</span>
+                    <span>📁 {{ getFileNameWithoutExtension( item.file! ) }}</span>
                 </li>
             </template>
         </ul>
@@ -37,6 +48,7 @@ interface DirectoryItem {
 const props = defineProps<{
     directory: FileSystemDirectoryHandle | null;
 }>();
+const thumbnailSize = ref<'x-small' | 'small' | 'medium' | 'large' | 'x-large'>('x-small');
 
 // 外部へのイベント通知
 const emits = defineEmits<{
@@ -110,33 +122,65 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-h2 {
-    font-size: 1.5em;
-    margin-bottom: 0.5em;
-}
-ul {
-    list-style: none;
-    padding: 0;
-}
-li {
-    margin: 0.5em 0;
-    font-size: 1.2em;
-}
+.filelist-wrapper {
+    height: 100%;
 
-.file-item {
-    &:hover {
-        background-color: #f8f8f;
-        cursor: pointer;
+    .file-list {
+        height: 100%;
+        overflow-y: auto;
+        list-style: none;
+        padding: 0;
+
+        .file-item {
+            margin: 4px 0;
+            font-size: 1em;
+            &:hover {
+                background-color: #f8f8f8;
+                cursor: pointer;
+            }
+
+            .file-item-content {
+                overflow:hidden;
+                white-space: nowrap;                
+            }
+
+            .thumbnail {
+                margin-left: 4px;
+                margin-right: 4px;
+                display: inline-block;
+                vertical-align: middle;
+                object-fit: scale-down;
+
+                &.x-small {
+                    width: 50px;
+                    height: 50px;
+                }
+                &.small {
+                    width: 75px;
+                    height: 75px;
+                }
+                &.medium {
+                    width: 100px;
+                    height: 100px;
+                }
+                &.large {
+                    width: 125px;
+                    height: 125px;
+                }
+                &.x-large {
+                    width: 150px;
+                    height: 150px;
+                }
+            }            
+        }
     }
 }
 
-.thumbnail {
-    border-radius: 8px;
-    width: 100px;
-    height: 100px;
-    margin-right: 0.5em;
-    display: inline-block;
-    vertical-align: middle;
-    object-fit: scale-down;
+.directory-name {
+    font-size: 1.5em;
+    margin-bottom: 0.5em;
 }
+
+
+
 </style>
