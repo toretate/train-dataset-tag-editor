@@ -107,45 +107,41 @@ const onSplitterDblClicked = ( { index, panes }: { index: number, panes: Pane[],
 
 <template>
   <v-app>
-    <v-main>
-      <v-container>
-        <v-app-bar :elevation="2">
-          <template v-slot:prepend>
-            <!-- <v-app-bar-nav-icon></v-app-bar-nav-icon> -->
-            <v-btn icon="mdi-directory" @click="onFileMenuClick">
-              <v-icon>mdi-folder</v-icon>
-            </v-btn>
-          </template>
-          <v-app-bar-title>{{ targetDirAbsPath ?? "(ディレクトリ未選択)" }}</v-app-bar-title>
-        </v-app-bar>
+    <v-app-bar :elevation="2">
+      <template v-slot:prepend>
+        <!-- <v-app-bar-nav-icon></v-app-bar-nav-icon> -->
+        <v-btn icon="mdi-directory" @click="onFileMenuClick">
+          <v-icon>mdi-folder</v-icon>
+        </v-btn>
+      </template>
+      <v-app-bar-title>{{ targetDirAbsPath ?? "(ディレクトリ未選択)" }}</v-app-bar-title>
+    </v-app-bar>
 
-        <div class="main-content">
-          <Splitpanes
-            class="default-theme"
-            @resized="onSplitterResized"
-            @splitter-dblclick="onSplitterDblClicked"
-            :maximize-panes="false"
-            >
-            <Pane min-size="10" :size="paneSize1">
-              <ImageAndDirectoryList :directory="targetDirHandle" @file-selected="fileSelected" />
-            </Pane>
-            <Pane :size="100 - paneSize1 - paneSize3">
-              <img :src="targetImageFileUrl" style="object-fit: scale-down; width: 100%;"/>
-            </Pane>
-            <Pane min-size="10" :size="paneSize3">
-              <form>
-                <textarea 
-                  rows="10" 
-                  cols="30" 
-                  placeholder="Enter tag text here..." 
-                  style="width: 100%; height: 100%;" 
-                  v-model="targetTagText">
-                </textarea>
-              </form>
-            </Pane>
-          </Splitpanes>
-        </div>
-      </v-container>
+    <v-main class="main-content">
+      <Splitpanes
+        class="default-theme"
+        @resized="onSplitterResized"
+        @splitter-dblclick="onSplitterDblClicked"
+        :maximize-panes="false"
+        >
+        <Pane min-size="10" :size="paneSize1">
+          <ImageAndDirectoryList :directory="targetDirHandle" @file-selected="fileSelected" />
+        </Pane>
+        <Pane :size="100 - paneSize1 - paneSize3">
+          <img :src="targetImageFileUrl" style="object-fit: scale-down; width: 100%;"/>
+        </Pane>
+        <Pane min-size="10" :size="paneSize3">
+          <form>
+            <textarea 
+              rows="10" 
+              cols="30" 
+              placeholder="Enter tag text here..." 
+              style="width: 100%; height: 100%;" 
+              v-model="targetTagText">
+            </textarea>
+          </form>
+        </Pane>
+      </Splitpanes>
     </v-main>
   </v-app>
 </template>
@@ -156,7 +152,6 @@ $menu-height: 3rem;
 .main-content {
   display: flex;
   flex-direction: row;
-  margin-top: $menu-height;
   width: 100vw;
   height: calc(100vh - $menu-height); /* Adjusted for fixed menu bar */
   overflow: hidden;
