@@ -4,10 +4,18 @@ param (
 )
 
 # SOURCE_DIR の定義
-$SourceDir = Join-Path -Path $ParentDir -ChildPath "only_official"
-$DestAll = Join-Path -Path $ParentDir -ChildPath "only_official_all"
-$DestDefault = Join-Path -Path $ParentDir -ChildPath "only_official_default"
-$DestReal = Join-Path -Path $ParentDir -ChildPath "only_official_real"
+$Source = "only_official"
+$Normal = $Source + "_default"
+$Real = $Source + "_real"
+$All = $Source + "_all"
+
+$SourceDir = Join-Path -Path $ParentDir -ChildPath $Source
+$DestNormal = Join-Path -Path $ParentDir -ChildPath $Normal
+$DestReal = Join-Path -Path $ParentDir -ChildPath $Real
+$DestAll = Join-Path -Path $ParentDir -ChildPath $All
+
+# 画像
+$ImageExtensions = @("png", "jpg", "jpeg", "webp")
 
 # SOURCE_DIR の存在確認
 if (-Not (Test-Path -Path $SourceDir)) {
@@ -16,8 +24,8 @@ if (-Not (Test-Path -Path $SourceDir)) {
 }
 
 # 必要なフォルダを削除して再作成
-Remove-Item -Recurse -Force -ErrorAction SilentlyContinue $DestAll, $DestDefault, $DestReal
-New-Item -ItemType Directory -Path $DestAll, $DestDefault, $DestReal | Out-Null
+Remove-Item -Recurse -Force -ErrorAction SilentlyContinue $DestAll, $DestNormal, $DestReal
+New-Item -ItemType Directory -Path $DestAll, $DestNormal, $DestReal | Out-Null
 
 # フォルダを走査
 Get-ChildItem -Path $SourceDir -Directory | ForEach-Object {
@@ -35,35 +43,43 @@ Get-ChildItem -Path $SourceDir -Directory | ForEach-Object {
         $DestRealFolder = Join-Path -Path $DestReal -ChildPath $FolderName
         $DestAllFolder = Join-Path -Path $DestAll -ChildPath $FolderName
         New-Item -ItemType Directory -Path $DestRealFolder, $DestAllFolder | Out-Null
-        Copy-Item -Path "$FolderPath\*.{png,jpeg,webp,txt}" -Destination $DestRealFolder -ErrorAction SilentlyContinue | ForEach-Object {
-            Write-Host "Copied to REAL: $($_.FullName)" -ForegroundColor Green
-        }
-        Copy-Item -Path "$FolderPath\*.{png,jpeg,webp,txt}" -Destination $DestAllFolder -ErrorAction SilentlyContinue | ForEach-Object {
-            Write-Host "Copied to ALL: $($_.FullName)" -ForegroundColor Green
+
+        # 画像とテキストファイルをコピー
+        foreach ($Ext in $ImageExtensions + "txt") {
+            Copy-Item -Path "$FolderPath\*.$Ext" -Destination $DestRealFolder -ErrorAction SilentlyContinue | ForEach-Object {
+                Write-Host "Copied to REAL: $($_.FullName)" -ForegroundColor Green
+            }
+            Copy-Item -Path "$FolderPath\*.$Ext" -Destination $DestAllFolder -ErrorAction SilentlyContinue | ForEach-Object {
+                Write-Host "Copied to ALL: $($_.FullName)" -ForegroundColor Green
+            }
         }
     }
-    # アストルム側フォルダ (数値_* だが *_real_* を除く)
+    # ノーマル側フォルダ (数値_* だが *_real_* を除く)
     elseif ($FolderName -like "*_*" -and $FolderName -notlike "*_real*") {
-        $DestDefaultFolder = Join-Path -Path $DestDefault -ChildPath $FolderName
+        $DestDefaultFolder = Join-Path -Path $DestNormal -ChildPath $FolderName
         $DestAllFolder = Join-Path -Path $DestAll -ChildPath $FolderName
         New-Item -ItemType Directory -Path $DestDefaultFolder, $DestAllFolder | Out-Null
-        Copy-Item -Path "$FolderPath\*.{png,jpeg,webp,txt}" -Destination $DestDefaultFolder -ErrorAction SilentlyContinue | ForEach-Object {
-            Write-Host "Copied to DEFAULT: $($_.FullName)" -ForegroundColor Green
-        }
-        Copy-Item -Path "$FolderPath\*.{png,jpeg,webp,txt}" -Destination $DestAllFolder -ErrorAction SilentlyContinue | ForEach-Object {
-            Write-Host "Copied to ALL: $($_.FullName)" -ForegroundColor Green
+
+        # 画像とテキストファイルをコピー
+        foreach ($Ext in $ImageExtensions + "txt") {
+            Copy-Item -Path "$FolderPath\*.$Ext" -Destination $DestDefaultFolder -ErrorAction SilentlyContinue | ForEach-Object {
+                Write-Host "Copied to DEFAULT: $($_.FullName)" -ForegroundColor Green
+            }
+            Copy-Item -Path "$FolderPath\*.$Ext" -Destination $DestAllFolder -ErrorAction SilentlyContinue | ForEach-Object {
+                Write-Host "Copied to ALL: $($_.FullName)" -ForegroundColor Green
+            }
         }
     }
 }
 
 # テキストファイルと同名の画像ファイルのみを残す
-$Destinations = @($DestAll, $DestDefault, $DestReal)
+$Destinations = @($DestAll, $DestNormal, $DestReal)
 foreach ($Dest in $Destinations) {
     Get-ChildItem -Path $Dest -Recurse -Filter "*.txt" | ForEach-Object {
         $BaseName = $_.BaseName
         $Dir = $_.DirectoryName
         Get-ChildItem -Path $Dir -Filter "*.*" | Where-Object {
-            $_.Name -notlike "$BaseName.*" -and $_.Extension -in (".png", ".jpeg", ".webp")
+            $_.Name -notlike "$BaseName.*" -and $_.Extension -in $ImageExtensions
         } | Remove-Item -Force
     }
 }
