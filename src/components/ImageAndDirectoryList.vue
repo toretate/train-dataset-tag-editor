@@ -1,6 +1,7 @@
 <template>
     <div class="filelist-wrapper">
         <div>
+            <!-- 画像サイズ選択UI -->
             <v-toolbar density="compact" :title="directory?.name || 'No Directory Selected'">
                 <template v-slot:append>
                     <v-btn-toggle density="compact" divided v-model="thumbnailSize" mandatory>
@@ -11,32 +12,24 @@
                 </template>
             </v-toolbar>
         </div>
-        <ul class="file-list">
+
+        <!-- ファイル選択リスト -->
+        <v-list class="file-list">
             <template v-for="(item, index) in directoryContents" :key="index">
-                <li v-if="item.type === 'file' && item.file && item.name.match(/\.(png|jpe?g|gif|bmp|webp)$/i)"
-                    class="file-item"
-                    v-on:click="handleItemClick(item)"
-                    >
-                    <v-lazy transition="fade-transition" :key="item.file.name">
-                        <div class="file-item-content">
-                            <v-img
-                                :src="getImageUrl(item.file)"
-                                :class="'thumbnail' + ' ' + thumbnailSize"
-                            />
-                            <span> {{ getFileNameWithoutExtension(item.file!) }}</span>
-                        </div>
-                    </v-lazy>
-                </li>
-                <li v-else-if="item.type === 'directory'">
-                    <span>📁 {{ getFileNameWithoutExtension( item.file! ) }}</span>
-                </li>
+                <image-and-directory-list-item
+                    :item="item"
+                    :thumbnailSize="thumbnailSize"
+                    @file-selected="emitSelectedFile"
+                    :show-tag="showTag"
+                    />
             </template>
-        </ul>
+        </v-list>
     </div>
 </template>
 
 <script setup lang="ts">
 import { defineComponent, ref, watch, onMounted, defineEmits } from 'vue';
+import ImageAndDirectoryListItem from './ImageAndDirectoryListItem.vue';
 
 interface DirectoryItem {
     name: string;
@@ -47,6 +40,7 @@ interface DirectoryItem {
 // プロパティ
 const props = defineProps<{
     directory: FileSystemDirectoryHandle | null;
+    showTag?: boolean;
 }>();
 const thumbnailSize = ref<'x-small' | 'small' | 'medium' | 'large' | 'x-large'>('x-small');
 
@@ -130,49 +124,6 @@ onMounted(() => {
         overflow-y: auto;
         list-style: none;
         padding: 0;
-
-        .file-item {
-            margin: 4px 0;
-            font-size: 1em;
-            &:hover {
-                background-color: #f8f8f8;
-                cursor: pointer;
-            }
-
-            .file-item-content {
-                overflow:hidden;
-                white-space: nowrap;                
-            }
-
-            .thumbnail {
-                margin-left: 4px;
-                margin-right: 4px;
-                display: inline-block;
-                vertical-align: middle;
-                object-fit: scale-down;
-
-                &.x-small {
-                    width: 50px;
-                    height: 50px;
-                }
-                &.small {
-                    width: 75px;
-                    height: 75px;
-                }
-                &.medium {
-                    width: 100px;
-                    height: 100px;
-                }
-                &.large {
-                    width: 125px;
-                    height: 125px;
-                }
-                &.x-large {
-                    width: 150px;
-                    height: 150px;
-                }
-            }            
-        }
     }
 }
 

@@ -1,76 +1,21 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { computedAsync } from '@vueuse/core'
-import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
+import { useMainStore } from './stores/mainStore'
+import { ref, computed } from 'vue'
 import ImageAndDirectoryList from './components/ImageAndDirectoryList.vue'
 import { Splitpanes, Pane } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
+import DirectorySelectionToolButton from './components/DirectorySelectionToolButton.vue'
 
-// targetDir プロパティを定義
-const targetDir = ref<string | null>(null)
-const targetDirAbsPath = ref<string | null>(null)
-const targetDirHandle = ref<FileSystemDirectoryHandle | null>(null)
+const store = useMainStore()
+type PANE = typeof Pane;
 
-const targetImageFileUrl = ref<string | null>(null)
-const targetTagText = ref<string | null>(null)
+// targetDir を Pinia ストアから取得
+const targetDirHandle = computed(() => store.targetDirHandle);
+const targetImageFileUrl = computed(() => store.targetImageFileUrl);
+const targetTagText = computed(() => store.targetTagText);
 
-const fileSelected = async (file: File) => {
-  // 選択されたファイルの処理をここに記述
-  console.log('Selected file:', file)
-  targetImageFileUrl.value = URL.createObjectURL(file)
-
-  // fileと同名で、拡張子がtxtのファイルの内容をロードして targetTagText に設定
-  const txtFileName = file.name.replace(/\.[^/.]+$/, '.txt')
-  if (targetDirHandle.value) {
-    try {
-      for await (const entry of targetDirHandle.value.values()) {
-        if (entry.kind === 'file' && entry.name === txtFileName) {
-          const fileHandle = await targetDirHandle.value.getFileHandle(entry.name)
-          const txtFile = await fileHandle.getFile()
-          targetTagText.value = await txtFile.text()
-          break
-        }
-      }
-    } catch (error) {
-      console.error('Error reading the txt file:', error)
-    }
-  }
-}
-
-// onFileMenuClick 関数を定義
-async function onFileMenuClick() {
-  try {
-    // File System Access API を使用してディレクトリ選択ダイアログを表示
-    const directoryHandle = await window.showDirectoryPicker()
-    // 選択されたディレクトリの名前を targetDir に設定
-    targetDir.value = directoryHandle.name
-    targetDirHandle.value = directoryHandle
-    console.log('Selected directory:', directoryHandle)
-
-    getFileAbsolutePath(directoryHandle).then((absPath) => {
-      targetDirAbsPath.value = absPath
-    })
-  } catch (error) {
-    console.error('Directory selection was canceled or failed:', error)
-  }
-}
-
-const getFileAbsolutePath = async (directoryHandle: FileSystemDirectoryHandle): Promise<string> => {
-  const paths: string[] = [];
-  let currentHandle: FileSystemDirectoryHandle | null = directoryHandle;
-
-  while (currentHandle) {
-    paths.unshift(currentHandle.name);
-    try {
-      currentHandle = await currentHandle.getParent();
-    } catch {
-      break; // If getParent is not supported or fails, exit the loop
-    }
-  }
-
-  return '/' + paths.join('/');
-};
+// 画像一覧の表示モード
+const listMode = ref<'panel' | 'list' | 'single' >('list')
 
 // SplitPanes のサイズ変更のPersistence処理
 const paneSizeData = JSON.parse( localStorage.panes ?? "[30, 40, 30]" ) as number[]
@@ -81,12 +26,12 @@ const savePaneSizes = ( panes: number[] ) => {
   console.log( panes )
   localStorage.setItem( 'panes', JSON.stringify( panes ) )
 }
-const onSplitterResized = ( { panes }: { panes: Pane[] } ) => {
+const onSplitterResized = ( { panes }: { panes: PANE[] } ) => {
   console.log( "Resized", panes.map( p => p.size ) )
   const paneSizeList = panes.map( p => p.size )
   savePaneSizes( paneSizeList )
 }
-const onSplitterDblClicked = ( { index, panes }: { index: number, panes: Pane[], prevPane: Pane, nextPane: Pane } ) => {
+const onSplitterDblClicked = ( { index, panes }: { index: number, panes: PANE[], prevPane: PANE, nextPane: PANE } ) => {
   console.log( "DblClicked", index, panes.map( p => p.size ) )
   // 初期サイズに戻す
   switch( index ) {
@@ -107,16 +52,12 @@ const onSplitterDblClicked = ( { index, panes }: { index: number, panes: Pane[],
 
 <template>
   <v-app>
+    <!-- ツールバー -->
     <v-app-bar :elevation="2">
-      <template v-slot:prepend>
-        <!-- <v-app-bar-nav-icon></v-app-bar-nav-icon> -->
-        <v-btn icon="mdi-directory" @click="onFileMenuClick">
-          <v-icon>mdi-folder</v-icon>
-        </v-btn>
-      </template>
-      <v-app-bar-title>{{ targetDirAbsPath ?? "(ディレクトリ未選択)" }}</v-app-bar-title>
+      <DirectorySelectionToolButton />
     </v-app-bar>
 
+    <!-- メイン領域 -->
     <v-main class="main-content">
       <Splitpanes
         class="default-theme"
@@ -124,22 +65,55 @@ const onSplitterDblClicked = ( { index, panes }: { index: number, panes: Pane[],
         @splitter-dblclick="onSplitterDblClicked"
         :maximize-panes="false"
         >
+        <!-- ディレクトリ選択パネル -->
         <Pane min-size="10" :size="paneSize1">
-          <ImageAndDirectoryList :directory="targetDirHandle" @file-selected="fileSelected" />
+          <ImageAndDirectoryList :directory="targetDirHandle" />
         </Pane>
-        <Pane :size="100 - paneSize1 - paneSize3">
-          <img :src="targetImageFileUrl" style="object-fit: scale-down; width: 100%;"/>
-        </Pane>
-        <Pane min-size="10" :size="paneSize3">
-          <form>
-            <textarea 
-              rows="10" 
-              cols="30" 
-              placeholder="Enter tag text here..." 
-              style="width: 100%; height: 100%;" 
-              v-model="targetTagText">
-            </textarea>
-          </form>
+
+        <!-- メイン表示 -->
+        <Pane size="100">
+
+          <!-- タグの共通編集コントロール -->
+          <v-col>
+              <v-text-field label="共通タグ(pre)" type="text" variant="outlined" v-model="store.commonTagPre" density="compact" clearable hide-details />
+              <v-text-field label="共通タグ(post)" type="text" variant="outlined" v-model="store.commonTagPost" density="compact" clearable hide-details />
+              <v-text-field label="追加" type="text" variant="outlined" v-model="store.commonAddTag" density="compact" clearable  hide-details />
+              <v-text-field label="削除" type="text" variant="outlined" v-model="store.commonDelTag" density="compact" clearable  hide-details />
+          </v-col>
+          <template v-if="listMode === 'panel'">
+            <!--  パネル表示用実装 -->
+          </template>
+          <template v-else-if="listMode === 'list'">
+            <ImageAndDirectoryList :directory="targetDirHandle" :show-tag="true" />
+          </template>
+          <template v-else> <!-- 画像とタグモード -->
+            <Splitpanes
+              class="default-theme"
+              vertical
+              @resized="onSplitterResized"
+              @splitter-dblclick="onSplitterDblClicked"
+              :maximize-panes="false"
+              >
+
+              <!-- 画像表示パネル -->
+              <Pane :size="100 - paneSize3">
+                <img :src="targetImageFileUrl" style="object-fit: scale-down; width: 100%;"/>
+              </Pane>
+
+              <!-- タグ表示パネル -->
+              <Pane min-size="10" :size="paneSize3">
+                <form>
+                  <textarea 
+                    rows="10" 
+                    cols="30" 
+                    placeholder="Enter tag text here..." 
+                    style="width: 100%; height: 100%;" 
+                    v-model="targetTagText">
+                  </textarea>
+                </form>
+              </Pane>
+            </Splitpanes>
+          </template>
         </Pane>
       </Splitpanes>
     </v-main>
