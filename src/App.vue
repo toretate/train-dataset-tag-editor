@@ -2,6 +2,8 @@
 import { useMainStore } from './stores/mainStore'
 import { ref, computed } from 'vue'
 import ImageAndDirectoryList from './components/ImageAndDirectoryList.vue'
+import ImageAndDirectoryTable from './components/ImageAndDirectoryTable.vue'
+import ImageAndTag from './components/ImageAndTag.vue'
 import { Splitpanes, Pane } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
 import DirectorySelectionToolButton from './components/DirectorySelectionToolButton.vue'
@@ -18,21 +20,17 @@ const targetTagText = computed(() => store.targetTagText);
 const listMode = ref<'panel' | 'list' | 'single' >('list')
 
 // SplitPanes のサイズ変更のPersistence処理
-const paneSizeData = JSON.parse( localStorage.panes ?? "[30, 40, 30]" ) as number[]
-console.log( paneSizeData )
+const paneSizeData = JSON.parse( localStorage.panes ?? "[30, 70]" ) as number[]
 const paneSize1 = ref( paneSizeData[0] )
-const paneSize3 = ref( paneSizeData[2] )
+const paneSize2 = ref( paneSizeData[1] )
 const savePaneSizes = ( panes: number[] ) => {
-  console.log( panes )
   localStorage.setItem( 'panes', JSON.stringify( panes ) )
 }
 const onSplitterResized = ( { panes }: { panes: PANE[] } ) => {
-  console.log( "Resized", panes.map( p => p.size ) )
   const paneSizeList = panes.map( p => p.size )
   savePaneSizes( paneSizeList )
 }
 const onSplitterDblClicked = ( { index, panes }: { index: number, panes: PANE[], prevPane: PANE, nextPane: PANE } ) => {
-  console.log( "DblClicked", index, panes.map( p => p.size ) )
   // 初期サイズに戻す
   switch( index ) {
     case 1:
@@ -40,8 +38,8 @@ const onSplitterDblClicked = ( { index, panes }: { index: number, panes: PANE[],
       paneSize1.value = paneSizeData[0]
       break
     case 2:
-      paneSizeData[2] = 30
-      paneSize3.value = paneSizeData[2]
+      paneSizeData[1] = 70
+      paneSize2.value = paneSizeData[1]
       break
     default:
       break
@@ -67,52 +65,33 @@ const onSplitterDblClicked = ( { index, panes }: { index: number, panes: PANE[],
         >
         <!-- ディレクトリ選択パネル -->
         <Pane min-size="10" :size="paneSize1">
-          <ImageAndDirectoryList :directory="targetDirHandle" />
+          <ImageAndDirectoryList :directory="targetDirHandle" :show-name="true" />
         </Pane>
 
         <!-- メイン表示 -->
-        <Pane size="100">
+        <Pane min-size="10" :size="paneSize2">
 
           <!-- タグの共通編集コントロール -->
           <v-col>
+            <v-row>
               <v-text-field label="共通タグ(pre)" type="text" variant="outlined" v-model="store.commonTagPre" density="compact" clearable hide-details />
+            </v-row>
+            <v-row>
               <v-text-field label="共通タグ(post)" type="text" variant="outlined" v-model="store.commonTagPost" density="compact" clearable hide-details />
-              <v-text-field label="追加" type="text" variant="outlined" v-model="store.commonAddTag" density="compact" clearable  hide-details />
-              <v-text-field label="削除" type="text" variant="outlined" v-model="store.commonDelTag" density="compact" clearable  hide-details />
+            </v-row>
+            <v-row>
+                <v-text-field width="50%" label="追加" type="text" variant="outlined" v-model="store.commonAddTag" density="compact" clearable  hide-details />
+                <v-text-field width="50%" label="削除" type="text" variant="outlined" v-model="store.commonDelTag" density="compact" clearable  hide-details />
+            </v-row>
           </v-col>
           <template v-if="listMode === 'panel'">
             <!--  パネル表示用実装 -->
           </template>
           <template v-else-if="listMode === 'list'">
-            <ImageAndDirectoryList :directory="targetDirHandle" :show-tag="true" />
+            <ImageAndDirectoryTable :directory="targetDirHandle" :show-tag="true" :show-name="false" />
           </template>
           <template v-else> <!-- 画像とタグモード -->
-            <Splitpanes
-              class="default-theme"
-              vertical
-              @resized="onSplitterResized"
-              @splitter-dblclick="onSplitterDblClicked"
-              :maximize-panes="false"
-              >
-
-              <!-- 画像表示パネル -->
-              <Pane :size="100 - paneSize3">
-                <img :src="targetImageFileUrl" style="object-fit: scale-down; width: 100%;"/>
-              </Pane>
-
-              <!-- タグ表示パネル -->
-              <Pane min-size="10" :size="paneSize3">
-                <form>
-                  <textarea 
-                    rows="10" 
-                    cols="30" 
-                    placeholder="Enter tag text here..." 
-                    style="width: 100%; height: 100%;" 
-                    v-model="targetTagText">
-                  </textarea>
-                </form>
-              </Pane>
-            </Splitpanes>
+            <ImageAndTag :image-file-url="targetImageFileUrl" :tag-text="targetTagText" />
           </template>
         </Pane>
       </Splitpanes>

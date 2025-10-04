@@ -23,4 +23,5 @@ interface DirectoryItem {
     name: string;
     type: 'file' | 'directory';
     file?: File; // ファイルの場合に File オブジェクトを保持
+    removeTags?: string; // 削除タグ
 }

@@ -3,51 +3,50 @@
     画像ファイルとディレクトリをリスト表示するコンポーネント
 -->
 <template>
-    <v-list-item v-if="item.type === 'file' && item.file && item.name.match(/\.(png|jpe?g|gif|bmp|webp)$/i)"
-        class="file-item"
-        v-on:click="handleItemClick(item)"
-        >
-        <div class="file-item-row">
-            <v-lazy transition="fade-transition" :key="item.file.name">
-                <div class="file-item-content">
-                    <v-img
-                        :src="getImageUrl(item.file)"
-                        :class="'thumbnail' + ' ' + thumbnailSize"
-                    />
-                    <span v-if="showName">
-                        {{ getFileNameWithoutExtension(item.file!) }}
-                    </span>
-                </div>
-            </v-lazy>
-            <template v-if="showTag">
-                <v-textarea
-                    v-model="tagsFiltered"
-                    type="text"
-                    variant="outlined"
-                    :hide-details="true"
-                    density="compact"
-                    clearable
-                    rows="3"
-                    />
-                <!-- -->
-                <v-textarea
-                    v-model="tagsNotFound"
-                    type="text"
-                    variant="outlined"
-                    :hide-details="true"
-                    density="compact"
-                    readonly
-                    rows="3"
-                    />                
-                <!-- 保存ボタン(タグファイルが無いものは plus を付ける) -->
-                <v-btn :icon="hasTagFile ? 'mdi-content-save' : 'mdi-content-save-plus'">
-                </v-btn>
-            </template>
-        </div>
-    </v-list-item>
-    <v-list-item v-else-if="item.type === 'directory'">
-        <span>📁 {{ getFileNameWithoutExtension( item.file! ) }}</span>
-    </v-list-item>
+    <td>
+        <v-lazy transition="fade-transition" :key="item.file!.name">
+            <v-img
+                :src="getImageUrl(item.file!)"
+                :class="'thumbnail' + ' ' + thumbnailSize"
+            />
+        </v-lazy>
+    </td>
+    <td><!-- 共通タグを除いたもの -->
+        <v-textarea
+                v-model="tagsFiltered"
+                type="text"
+                variant="outlined"
+                :hide-details="true"
+                density="compact"
+                rows="3"
+                />
+    </td>
+    <td><!-- 共通タグに入っていないもの -->
+        <v-textarea
+                v-model="tagsNotFound"
+                type="text"
+                variant="outlined"
+                :hide-details="true"
+                density="compact"
+                readonly disabled 
+                rows="3"
+                />                
+    </td>
+    <td><!-- 共通タグから削除するもの -->
+        <v-textarea
+                v-model="item.removeTags"
+                type="text"
+                variant="outlined"
+                :hide-details="true"
+                density="compact"
+                rows="3"
+                />                
+    </td>
+    <td>
+        <!-- 保存ボタン(タグファイルが無いものは plus を付ける) -->
+        <v-btn :icon="hasTagFile ? 'mdi-content-save' : 'mdi-content-save-plus'">
+        </v-btn>
+    </td>
 </template>
 <script setup lang="ts">
 import { defineComponent, ref, watch, onMounted, defineEmits, computed } from 'vue';
@@ -55,24 +54,14 @@ import { useMainStore } from "../stores/mainStore";
 
 const store = useMainStore();
 
-interface DirectoryItem {
-    name: string;
-    type: 'file' | 'directory';
-    file?: File; // ファイルの場合に File オブジェクトを保持
-}
-
 // プロパティ
 const props = defineProps<{
     item: DirectoryItem;
     thumbnailSize: 'x-small' | 'small' | 'medium' | 'large' | 'x-large';
-    showTag?: boolean;
-    showName?: boolean;
 }>();
-const showTag = props.showTag ?? false;
-const showName = props.showName ?? true;
 const commonTagPre = computed( () => (store.commonTagPre || "").split(",").map(s => s.trim()) );
 const commonTagPost = computed( () => (store.commonTagPost || "").split(",").map(s => s.trim()) );
-
+const removeTags = computed( () => (props.item.removeTags || "").split(",").map(s => s.trim()) );
 
 // 外部へのイベント通知
 const emits = defineEmits<{
@@ -94,7 +83,7 @@ const tags = computed(
     },
 );
 
-// 共通タグを除いたもの
+// 共通タグと、commonRemoveTags を除いたもの
 const tagsFiltered = computed(
     () => {
         let tmp = tags.value;
@@ -110,7 +99,8 @@ const tagsNotFound = computed(
     () => {
         const tmp = tags.value;
         const common = [...commonTagPre.value, ...commonTagPost.value];
-        const remain = common.filter( c => tmp.includes(c) === false );
+        let remain = common.filter( c => tmp.includes(c) === false );
+        remain = remain.filter( t => (removeTags.value).includes(t) === false );
         return remain.join(", ");
     },
 );
@@ -129,35 +119,14 @@ const getFileNameWithoutExtension = (file: File): string => {
 
 
 // イベントハンドラ
-const handleItemClick = (item: DirectoryItem) => {
-    if (item.type === 'file' && item.file) {
-        emits( 'file-selected', item.file );
-    }
-};
-
 
 </script>
 
 <style lang="scss" scoped>
-.file-item {
-    margin: 4px 0;
-    font-size: 1em;
-    &:hover {
-        background-color: #f8f8f8;
-        cursor: pointer;
+    td {
+        padding-left: 0px !important;
+        padding-right: 0px !important;
     }
-
-    .file-item-row {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-    }
-
-    .file-item-content {
-        overflow:hidden;
-        white-space: nowrap;                
-    }
-
     .thumbnail {
         margin-left: 4px;
         margin-right: 4px;
@@ -186,5 +155,4 @@ const handleItemClick = (item: DirectoryItem) => {
             height: 150px;
         }
     }            
-}
 </style>

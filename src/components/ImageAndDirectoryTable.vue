@@ -1,43 +1,51 @@
 <template>
-    <div class="filelist-wrapper">
-        <div>
-            <!-- 画像サイズ選択UI -->
-            <v-toolbar density="compact" :title="directory?.name || 'No Directory Selected'">
-                <template v-slot:append>
-                    <v-btn icon="mdi-content-save-all" size="small"></v-btn>
-                    <v-btn-toggle density="compact" divided v-model="thumbnailSize" mandatory>
-                        <v-btn size="x-small" value="x-small"><v-icon size="x-small">mdi-image</v-icon></v-btn>
-                        <v-btn size="x-small" value="medium"><v-icon size="medium">mdi-image</v-icon></v-btn>
-                        <v-btn size="x-small" value="x-large"><v-icon size="x-large">mdi-image</v-icon></v-btn>
-                    </v-btn-toggle>
-                </template>
-            </v-toolbar>
-        </div>
-
-        <!-- ファイル選択リスト -->
-        <v-list class="file-list">
-            <template v-for="(item, index) in directoryContents" :key="index">
-                <image-and-directory-list-item
-                    :item="item"
-                    :thumbnailSize="thumbnailSize"
-                    @file-selected="emitSelectedFile"
-                    :show-tag="showTag"
-                    :show-name="showName"
-                    />
+    <div>
+        <!-- 画像サイズ選択UI -->
+        <v-toolbar density="compact">
+            <template v-slot:append>
+                <v-btn icon="mdi-content-save-all" size="small"></v-btn>
+                <v-btn-toggle density="compact" divided v-model="thumbnailSize" mandatory>
+                    <v-btn size="x-small" value="x-small"><v-icon size="x-small">mdi-image</v-icon></v-btn>
+                    <v-btn size="x-small" value="medium"><v-icon size="medium">mdi-image</v-icon></v-btn>
+                    <v-btn size="x-small" value="x-large"><v-icon size="x-large">mdi-image</v-icon></v-btn>
+                </v-btn-toggle>
             </template>
-        </v-list>
+        </v-toolbar>
     </div>
+
+    <!-- ファイル選択リスト -->
+    <v-table class="file-list">
+        <thead>
+            <tr>
+                <th></th>
+                <th>タグ(共通タグ,削除を除く)</th>
+                <th>入っていない共通タグ</th>
+                <th>削除タグ</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            <template v-for="(item, index) in directoryContents" :key="index">
+                <tr v-if="item.type === 'file' && item.file && item.name.match(IMAGE_FILE_EXTENSIONS)">
+                    <image-and-directory-table-row
+                        :item="item"
+                        :thumbnailSize="thumbnailSize"
+                        @file-selected="emitSelectedFile"
+                        :show-tag="showTag"
+                        :show-name="showName"
+                    />
+                </tr>
+            </template>
+        </tbody>
+    </v-table>
 </template>
 
 <script setup lang="ts">
 import { ref, watch, onMounted, defineEmits } from 'vue';
-import ImageAndDirectoryListItem from './ImageAndDirectoryListItem.vue';
+import ImageAndDirectoryTableRow from './ImageAndDirectoryTableRow.vue';
 
-interface DirectoryItem {
-    name: string;
-    type: 'file' | 'directory';
-    file?: File; // ファイルの場合に File オブジェクトを保持
-}
+// 対応画像拡張子
+const IMAGE_FILE_EXTENSIONS = /\.(png|jpe?g|gif|bmp|webp)$/i;
 
 // プロパティ
 const props = defineProps<{
@@ -48,14 +56,14 @@ const props = defineProps<{
 const showTag = props.showTag ?? false;
 const showName = props.showName ?? true;
 
+// data
 const thumbnailSize = ref<'x-small' | 'small' | 'medium' | 'large' | 'x-large'>('x-small');
+const directoryContents = ref<DirectoryItem[]>([]);
 
 // 外部へのイベント通知
 const emits = defineEmits<{
     (e: 'file-selected', value: File): void
 }>();
-
-const directoryContents = ref<DirectoryItem[]>([]);
 
 const fetchDirectoryContents = async () => {
     if (props.directory) {
