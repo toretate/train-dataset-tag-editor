@@ -1,19 +1,19 @@
 <template>
-    <div>
-        <!-- 画像サイズ選択UI -->
-        <v-toolbar density="compact">
-            <template v-slot:append>
-                <v-btn icon="mdi-content-save-all" size="small"></v-btn>
-                <v-btn-toggle density="compact" divided v-model="thumbnailSize" mandatory>
-                    <v-btn size="x-small" value="x-small"><v-icon size="x-small">mdi-image</v-icon></v-btn>
-                    <v-btn size="x-small" value="medium"><v-icon size="medium">mdi-image</v-icon></v-btn>
-                    <v-btn size="x-small" value="x-large"><v-icon size="x-large">mdi-image</v-icon></v-btn>
-                </v-btn-toggle>
-            </template>
-        </v-toolbar>
-    </div>
+    <!-- 画像サイズ選択UI -->
+    <v-toolbar density="compact">
+        <template v-slot:append>
+            <v-btn icon="mdi-content-save-all" size="small"></v-btn>
+            <v-btn-toggle density="compact" divided v-model="thumbnailSize" mandatory>
+                <v-btn size="x-small" value="x-small"><v-icon size="x-small">mdi-image</v-icon></v-btn>
+                <v-btn size="x-small" value="medium"><v-icon size="medium">mdi-image</v-icon></v-btn>
+                <v-btn size="x-small" value="x-large"><v-icon size="x-large">mdi-image</v-icon></v-btn>
+            </v-btn-toggle>
+        </template>
+    </v-toolbar>
 
     <!-- ファイル選択リスト -->
+    <v-container>
+
     <v-table class="file-list">
         <thead>
             <tr>
@@ -36,6 +36,8 @@
             </template>
         </tbody>
     </v-table>
+    
+    </v-container>
 </template>
 
 <script setup lang="ts">

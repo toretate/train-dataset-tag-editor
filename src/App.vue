@@ -51,7 +51,7 @@ const onSplitterDblClicked = ( { index, panes }: { index: number, panes: PANE[],
 <template>
   <v-app>
     <!-- ツールバー -->
-    <v-app-bar :elevation="2">
+    <v-app-bar :elevation="2" density="compact">
       <DirectorySelectionToolButton />
     </v-app-bar>
 
@@ -72,18 +72,22 @@ const onSplitterDblClicked = ( { index, panes }: { index: number, panes: PANE[],
         <Pane min-size="10" :size="paneSize2">
 
           <!-- タグの共通編集コントロール -->
-          <v-col>
-            <v-row>
-              <v-text-field label="共通タグ(pre)" type="text" variant="outlined" v-model="store.commonTagPre" density="compact" clearable hide-details />
+          <v-container>
+            <v-row class="control-panel">
+              <v-col>
+                <v-row>
+                  <v-textarea label="共通タグ(pre)" type="text" variant="outlined" v-model="store.commonTagPre" density="compact" hide-details rows="4" />
+                  <v-textarea label="共通タグ(post)" type="text" variant="outlined" v-model="store.commonTagPost" density="compact" hide-details rows="4" />
+                </v-row>
+                <v-row>
+                    <v-text-field width="50%" label="追加" type="text" variant="outlined" v-model="store.commonAddTag" density="compact" clearable  hide-details />
+                    <v-text-field width="50%" label="削除" type="text" variant="outlined" v-model="store.commonDelTag" density="compact" clearable  hide-details />
+                </v-row>
+              </v-col>
             </v-row>
-            <v-row>
-              <v-text-field label="共通タグ(post)" type="text" variant="outlined" v-model="store.commonTagPost" density="compact" clearable hide-details />
-            </v-row>
-            <v-row>
-                <v-text-field width="50%" label="追加" type="text" variant="outlined" v-model="store.commonAddTag" density="compact" clearable  hide-details />
-                <v-text-field width="50%" label="削除" type="text" variant="outlined" v-model="store.commonDelTag" density="compact" clearable  hide-details />
-            </v-row>
-          </v-col>
+          </v-container>
+
+
           <template v-if="listMode === 'panel'">
             <!--  パネル表示用実装 -->
           </template>
