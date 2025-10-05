@@ -13,34 +13,35 @@
     </td>
     <td><!-- 共通タグを除いたもの -->
         <v-textarea
-                v-model="tagsFiltered"
-                type="text"
-                variant="outlined"
-                :hide-details="true"
-                density="compact"
-                rows="3"
-                />
+            v-model="tagsFiltered"
+            type="text"
+            variant="outlined"
+            :hide-details="true"
+            density="compact"
+            rows="3"
+            @update:focused="onTagsFilteredFocused"
+            />
     </td>
     <td><!-- 共通タグに入っていないもの -->
         <v-textarea
-                v-model="tagsNotFound"
-                type="text"
-                variant="outlined"
-                :hide-details="true"
-                density="compact"
-                readonly disabled 
-                rows="3"
-                />                
+            v-model="tagsNotFound"
+            type="text"
+            variant="outlined"
+            :hide-details="true"
+            density="compact"
+            readonly disabled 
+            rows="3"
+            />                
     </td>
     <td><!-- 共通タグから削除するもの -->
         <v-textarea
-                v-model="item.removeTags"
-                type="text"
-                variant="outlined"
-                :hide-details="true"
-                density="compact"
-                rows="3"
-                />                
+            v-model="item.removeTags"
+            type="text"
+            variant="outlined"
+            :hide-details="true"
+            density="compact"
+            rows="3"
+            />
     </td>
     <td>
         <!-- 保存ボタン(タグファイルが無いものは plus を付ける) -->
@@ -51,6 +52,13 @@
 <script setup lang="ts">
 import { defineComponent, ref, watch, onMounted, defineEmits, computed } from 'vue';
 import { useMainStore } from "../stores/mainStore";
+
+/** 拡張子を除いたファイル名部分を返す */
+const getFileNameWithoutExtension = (file: File): string => {
+    const fileName = file.name;
+    const lastDotIndex = fileName.lastIndexOf('.');
+    return lastDotIndex !== -1 ? fileName.substring(0, lastDotIndex) : fileName;
+};
 
 const store = useMainStore();
 
@@ -83,16 +91,19 @@ const tags = computed(
     },
 );
 
-// 共通タグと、commonRemoveTags を除いたもの
-const tagsFiltered = computed(
-    () => {
-        let tmp = tags.value;
-        // 共通タグを削除
-        tmp = tmp.filter( t => (commonTagPre.value).includes(t) === false );
-        tmp = tmp.filter( t => (commonTagPost.value).includes(t) === false );
-        return tmp.join(", ");
-    },
-);
+// タグ(共通タグ、削除を除く) 
+const tagsFiltered = ref("");
+const updateTagsFiltered = () => {
+    // 共通タグを削除し、「削除タグ」も削除
+    let tmp = tags.value
+        .filter( t => (commonTagPre.value).includes(t) === false )
+        .filter( t => (commonTagPost.value).includes(t) === false )
+
+        ;
+    tagsFiltered.value = tmp.join(", ");
+};
+updateTagsFiltered() // 初期化
+watch( [tags, commonTagPre, commonTagPost], updateTagsFiltered); // tags, 共通タグ が変わったら更新
 
 // 共通タグで未登録のもの
 const tagsNotFound = computed(
@@ -110,15 +121,27 @@ const getImageUrl = (file: File) => {
     return URL.createObjectURL(file);
 };
 
-/** 拡張子を除いたファイル名部分を返す */
-const getFileNameWithoutExtension = (file: File): string => {
-    const fileName = file.name;
-    const lastDotIndex = fileName.lastIndexOf('.');
-    return lastDotIndex !== -1 ? fileName.substring(0, lastDotIndex) : fileName;
-};
-
-
 // イベントハンドラ
+
+const onTagsFilteredFocused = ( focused: boolean ) => {
+    if( focused ) return;   // フォーカス時には何もしない
+    if( !props.item.file ) return;
+
+    const fileName = getFileNameWithoutExtension( props.item.file );
+    if ( fileName.length === 0 ) return;
+
+    // フォーカスを外れたら、タグ更新を行う
+    // [共通タグ(pre), ... , filteredタグ, ... , 共通タグ(post)] の順に並べる
+    // そのあと、removeTags に含まれるものを削除する
+    const updatedTags = [
+        ...commonTagPre.value,
+        ...tagsFiltered.value.split(",").map(s => s.trim()),
+        ...commonTagPost.value
+    ]   .filter(tag => !removeTags.value.includes(tag))
+        .join(", ")
+        ;
+    store.setTagText(fileName, updatedTags);
+};
 
 </script>
 
