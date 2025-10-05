@@ -64,9 +64,9 @@ const onSplitterDblClicked = ( { index, panes }: { index: number, panes: PANE[],
         :maximize-panes="false"
         >
         <!-- ディレクトリ選択パネル -->
-        <Pane min-size="10" :size="paneSize1">
+        <!-- <Pane min-size="10" :size="paneSize1">
           <ImageAndDirectoryList :directory="targetDirHandle" :show-name="true" />
-        </Pane>
+        </Pane> -->
 
         <!-- メイン表示 -->
         <Pane min-size="10" :size="paneSize2">
@@ -88,7 +88,7 @@ const onSplitterDblClicked = ( { index, panes }: { index: number, panes: PANE[],
             <!--  パネル表示用実装 -->
           </template>
           <template v-else-if="listMode === 'list'">
-            <ImageAndDirectoryTable :directory="targetDirHandle" :show-tag="true" :show-name="false" />
+            <ImageAndDirectoryTable :directory="targetDirHandle" />
           </template>
           <template v-else> <!-- 画像とタグモード -->
             <ImageAndTag :image-file-url="targetImageFileUrl" :tag-text="targetTagText" />

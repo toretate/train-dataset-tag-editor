@@ -31,8 +31,6 @@
                         :item="item"
                         :thumbnailSize="thumbnailSize"
                         @file-selected="emitSelectedFile"
-                        :show-tag="showTag"
-                        :show-name="showName"
                     />
                 </tr>
             </template>
@@ -50,11 +48,7 @@ const IMAGE_FILE_EXTENSIONS = /\.(png|jpe?g|gif|bmp|webp)$/i;
 // プロパティ
 const props = defineProps<{
     directory: FileSystemDirectoryHandle | null;
-    showTag?: boolean;
-    showName?: boolean;
 }>();
-const showTag = props.showTag ?? false;
-const showName = props.showName ?? true;
 
 // data
 const thumbnailSize = ref<'x-small' | 'small' | 'medium' | 'large' | 'x-large'>('x-small');
