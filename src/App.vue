@@ -116,7 +116,7 @@ $menu-height: 3rem;
   display: flex;
   flex-direction: row;
   width: 100vw;
-  height: calc(100vh - $menu-height); /* Adjusted for fixed menu bar */
+  // height: calc(100vh - $menu-height); /* Adjusted for fixed menu bar */
   overflow: hidden;
 }
 
