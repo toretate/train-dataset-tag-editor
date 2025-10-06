@@ -20,6 +20,9 @@ export const useMainStore = defineStore('main', {
         commonTagPost: '' as string,// 共通タグ(post)
         commonAddTag: '' as string, // 共通追加タグ
         commonDelTag: '' as string, // 共通削除タグ
+
+        // アプリの設定
+        thumbnailSize: 'x-small' as 'x-small' | 'small' | 'medium' | 'large' | 'x-large',
     }),
     actions: {
         setTargetDir(dir: string | null) {

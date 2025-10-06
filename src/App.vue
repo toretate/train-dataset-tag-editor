@@ -53,6 +53,12 @@ const onSplitterDblClicked = ( { index, panes }: { index: number, panes: PANE[],
     <!-- ツールバー -->
     <v-app-bar :elevation="2" density="compact">
       <DirectorySelectionToolButton />
+      <v-btn icon="mdi-content-save-all"></v-btn>
+      <v-btn-toggle density="compact" variant="outlined" divided v-model="store.thumbnailSize" mandatory>
+                <v-btn size="x-small" value="x-small"><v-icon size="x-small">mdi-image</v-icon /></v-btn>
+                <v-btn size="x-small" value="medium"><v-icon size="medium">mdi-image</v-icon></v-btn>
+                <v-btn size="x-small" value="x-large"><v-icon size="x-large">mdi-image</v-icon></v-btn>
+            </v-btn-toggle>
     </v-app-bar>
 
     <!-- メイン領域 -->

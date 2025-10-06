@@ -1,16 +1,4 @@
 <template>
-    <!-- 画像サイズ選択UI -->
-    <v-toolbar density="compact">
-        <template v-slot:append>
-            <v-btn icon="mdi-content-save-all" size="small"></v-btn>
-            <v-btn-toggle density="compact" divided v-model="thumbnailSize" mandatory>
-                <v-btn size="x-small" value="x-small"><v-icon size="x-small">mdi-image</v-icon></v-btn>
-                <v-btn size="x-small" value="medium"><v-icon size="medium">mdi-image</v-icon></v-btn>
-                <v-btn size="x-small" value="x-large"><v-icon size="x-large">mdi-image</v-icon></v-btn>
-            </v-btn-toggle>
-        </template>
-    </v-toolbar>
-
     <!-- ファイル選択リスト -->
     <v-container>
 
@@ -29,20 +17,23 @@
                 <tr v-if="item.type === 'file' && item.file && item.name.match(IMAGE_FILE_EXTENSIONS)">
                     <image-and-directory-table-row
                         :item="item"
-                        :thumbnailSize="thumbnailSize"
+                        :thumbnailSize="store.thumbnailSize"
                         @file-selected="emitSelectedFile"
                     />
                 </tr>
             </template>
         </tbody>
     </v-table>
-    
+
     </v-container>
 </template>
 
 <script setup lang="ts">
+import { useMainStore } from '../stores/mainStore'
 import { ref, watch, onMounted, defineEmits } from 'vue';
 import ImageAndDirectoryTableRow from './ImageAndDirectoryTableRow.vue';
+
+const store = useMainStore()
 
 // 対応画像拡張子
 const IMAGE_FILE_EXTENSIONS = /\.(png|jpe?g|gif|bmp|webp)$/i;
@@ -53,7 +44,6 @@ const props = defineProps<{
 }>();
 
 // data
-const thumbnailSize = ref<'x-small' | 'small' | 'medium' | 'large' | 'x-large'>('x-small');
 const directoryContents = ref<DirectoryItem[]>([]);
 
 // 外部へのイベント通知
