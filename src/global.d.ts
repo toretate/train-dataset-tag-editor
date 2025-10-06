@@ -10,6 +10,7 @@ interface FileSystemDirectoryHandle {
 
 interface Window {
     showDirectoryPicker: () => Promise<FileSystemDirectoryHandle>;
+    showSaveFilePicker: (options?: SaveFilePickerOptions) => Promise<FileSystemFileHandle>;
 }
 
 declare module 'splitpanes' {

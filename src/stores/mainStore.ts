@@ -1,3 +1,4 @@
+import { set } from '@vueuse/core';
 import { defineStore } from 'pinia';
 
 export const useMainStore = defineStore('main', {
@@ -51,5 +52,12 @@ export const useMainStore = defineStore('main', {
 
         // タグテキストをクリア。ディレクトリ変更時に使用してください
         clearTagText() { this.tagText = {}; },
+
+
+        // タグ設定
+        setCommonTagPre(tag: string) { this.commonTagPre = tag; },
+        setCommonTagPost(tag: string) { this.commonTagPost = tag; },
+        setCommonAddTag(tag: string) { this.commonAddTag = tag; },
+        setCommonDelTag(tag: string) { this.commonDelTag = tag; }
     },
 });

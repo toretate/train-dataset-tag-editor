@@ -10,6 +10,7 @@
 <script lang="ts" setup>
 import { ref, computed } from 'vue';
 import { useMainStore } from '../stores/mainStore'
+import { useLoadTagSettings } from './function/tag-settings';
 
 const store = useMainStore()
 
@@ -17,13 +18,20 @@ const store = useMainStore()
 const targetDirHandle = computed(() => store.targetDirHandle);
 const targetDirAbsPath = computed(() => store.targetDirAbsPath);
 
+/**
+ * 共通タグなどの設定値をロードする
+ * フォルダの tag-settings.json から読み込む
+ */
+const loadTagSettings = async (file: File) => {
+    return await useLoadTagSettings( file )
+}
 
+// 画像ファイルに対応するタグ情報をロードする
 const loadTagText = async (file: File) => {
     if( !targetDirHandle.value ) return;
 
     // 拡張子を除いたファイル名を取得
     const fileName = file.name.replace(/\.[^/.]+$/, '');
-    console.log('tag image file:', fileName)
     const tagText = await file.text();
 
     try {
@@ -34,7 +42,12 @@ const loadTagText = async (file: File) => {
 }
 
 
-// ディレクトリ内のファイル一覧を取得
+/**
+ * ディレクトリ内のファイル一覧を取得
+ * * 画像ファイル(.png, .jpg, .jpeg, .bmp, .gif, .webp)
+ * * タグファイル(.txt)
+ * * タグ設定ファイル(tag-settings.json)
+ */
 const fetchDirectoryContents = async ( directory: FileSystemDirectoryHandle ) => {
     store.setDirectoryContents( [] )
 
@@ -50,9 +63,12 @@ const fetchDirectoryContents = async ( directory: FileSystemDirectoryHandle ) =>
             const fileHandle = entry as FileSystemFileHandle;
             item.file = await fileHandle.getFile();
 
-            // タグファイルの場合はロード
             if(entry.name.match( /\.(txt)$/i )){
+                // タグファイルの場合はロード
                 await loadTagText( item.file )
+            } else if(entry.name === 'tag-settings.json'){
+                // タグ設定ファイルの場合はロード
+                await loadTagSettings( item.file );
             }
         }
 
