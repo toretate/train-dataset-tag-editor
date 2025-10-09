@@ -49,6 +49,7 @@ const loadTagText = async (file: File) => {
  * * タグ設定ファイル(tag-settings.json)
  */
 const fetchDirectoryContents = async ( directory: FileSystemDirectoryHandle ) => {
+    store.clear()
     store.setDirectoryContents( [] )
 
     const contents = [];

@@ -58,6 +58,16 @@ export const useMainStore = defineStore('main', {
         setCommonTagPre(tag: string) { this.commonTagPre = tag; },
         setCommonTagPost(tag: string) { this.commonTagPost = tag; },
         setCommonAddTag(tag: string) { this.commonAddTag = tag; },
-        setCommonDelTag(tag: string) { this.commonDelTag = tag; }
+        setCommonDelTag(tag: string) { this.commonDelTag = tag; },
+
+        // Clear処理
+        clear() {
+            this.tagText = {};
+
+            this.commonTagPre = '';
+            this.commonTagPost = '';
+            this.commonAddTag = '';
+            this.commonDelTag = '';
+        }
     },
 });
