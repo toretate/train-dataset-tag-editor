@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { useMainStore } from './stores/mainStore'
 import { ref, computed } from 'vue'
-import ImageAndDirectoryList from './components/ImageAndDirectoryList.vue'
 import ImageAndDirectoryTable from './components/ImageAndDirectoryTable.vue'
-import ImageAndTag from './components/ImageAndTag.vue'
 import { Splitpanes, Pane } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
 import DirectorySelectionToolButton from './components/DirectorySelectionToolButton.vue'
@@ -14,8 +12,6 @@ type PANE = typeof Pane;
 
 // targetDir を Pinia ストアから取得
 const targetDirHandle = computed(() => store.targetDirHandle);
-const targetImageFileUrl = computed(() => store.targetImageFileUrl);
-const targetTagText = computed(() => store.targetTagText);
 
 // 画像一覧の表示モード
 const listMode = ref<'panel' | 'list' | 'single' >('list')
@@ -104,9 +100,6 @@ const onSaveSettingsClicked = async () => {
           </template>
           <template v-else-if="listMode === 'list'">
             <ImageAndDirectoryTable :directory="targetDirHandle" />
-          </template>
-          <template v-else> <!-- 画像とタグモード -->
-            <ImageAndTag :image-file-url="targetImageFileUrl" :tag-text="targetTagText" />
           </template>
         </Pane>
       </Splitpanes>
