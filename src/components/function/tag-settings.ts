@@ -26,8 +26,9 @@ export const useLoadTagSettings = async (file: File) => {
  * 設定の保存
  * @param handle 保存先のファイルハンドル (未指定の場合はダイアログを表示して選択)
  */
-export const useSaveTagSettings = async ( handle?: FileSystemFileHandle ) => {
+export const useSaveTagSettings = async () => {
     const store = useMainStore()
+    let handle = store.commonTagSettingFile;
 
     // Fiele System Access API で保存
     if (!store.targetDirHandle) {

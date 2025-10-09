@@ -48,10 +48,9 @@ const onSplitterDblClicked = ( { index, panes }: { index: number, panes: PANE[],
   savePaneSizes( paneSizeData )
 }
 
-const onSaveSettingsClicked = () => {
-  useSaveTagSettings()
+const onSaveSettingsClicked = async () => {
+  await useSaveTagSettings();
 }
-
 </script>
 
 <template>

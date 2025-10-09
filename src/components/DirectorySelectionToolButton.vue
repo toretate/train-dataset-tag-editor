@@ -70,6 +70,7 @@ const fetchDirectoryContents = async ( directory: FileSystemDirectoryHandle ) =>
             } else if(entry.name === 'tag-settings.json'){
                 // タグ設定ファイルの場合はロード
                 await loadTagSettings( item.file );
+                store.setCommonTagSettingFile( entry );
             }
         }
 

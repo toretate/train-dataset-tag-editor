@@ -17,6 +17,7 @@ export const useMainStore = defineStore('main', {
         // 画像ごとのタグテキストを保持する連想配列
         tagText: {} as Record<string, string | null>,
 
+        commonTagSettingFile: null as FileSystemFileHandle | null, // 共通タグ設定ファイル
         commonTagPre: '' as string, // 共通タグ(pre)
         commonTagPost: '' as string,// 共通タグ(post)
         commonAddTag: '' as string, // 共通追加タグ
@@ -55,6 +56,7 @@ export const useMainStore = defineStore('main', {
 
 
         // タグ設定
+        setCommonTagSettingFile( file: FileSystemFileHandle | null ) { this.commonTagSettingFile = file;},
         setCommonTagPre(tag: string) { this.commonTagPre = tag; },
         setCommonTagPost(tag: string) { this.commonTagPost = tag; },
         setCommonAddTag(tag: string) { this.commonAddTag = tag; },
@@ -64,6 +66,7 @@ export const useMainStore = defineStore('main', {
         clear() {
             this.tagText = {};
 
+            this.commonTagSettingFile = null;
             this.commonTagPre = '';
             this.commonTagPost = '';
             this.commonAddTag = '';
